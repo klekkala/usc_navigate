@@ -2,6 +2,9 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+import cv2
+
+import Equirec2Perspec as E2P
 new_min = -100
 new_max = 100
 lat_min = 40.42524817            ## this is for first 500 in pittsburg need to generalize this for all places
@@ -24,6 +27,21 @@ class dataHelper:
 
     def image_name(self, pos):
         return self.image_names[pos]
+
+    def panaroma_split(self, my_theta, theta, image ):
+        print("image_name", image + ".jpg")
+        equ = E2P.Equirectangular("../data/Pittsburgh/"+image+".jpg")  # Load equirectangular image
+
+        #
+        # FOV unit is degree
+        # theta is z-axis angle(right direction is positive, left direction is negative)
+        # phi is y-axis angle(up direction positive, down direction negative)
+        # height and width is output image dimension
+        #
+        img = equ.GetPerspective(90, 360, 0, 720, 1080)  # Specify parameters(FOV, theta, phi, height, width)
+        cv2.imshow('window', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 
     def build_graph(self, data):
@@ -73,7 +91,10 @@ class dataHelper:
         print("finds next position based on action/direction and position")
         if action == "next":
             #print(self.end_points)
-            return list(self.G.nodes.data(pos))[0]
+            print("find_next_len", (self.G[pos]))
+            print("current",self.G.nodes.data(pos))
+            print("returning", [keys for keys,value in self.G[pos].items()])
+            return list([keys for keys,value in self.G[pos].items()])
 
     def reset(self):
         # reset the position of the agent
