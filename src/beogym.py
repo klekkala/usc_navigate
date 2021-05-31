@@ -21,12 +21,12 @@ def go_straight(agents_pos, prev, o):
 
 def go_left(agents_pos, prev, o):
     curr_angle = get_angle(agents_pos, prev)
-    angle_range = (fix_angle(curr_angle -90 - 45), fix_angle(curr_angle-90 + 45))
+    angle_range = (fix_angle(curr_angle +90 - 45), fix_angle(curr_angle+90 + 45))
     return find_nearest(agents_pos, angle_range, 270, o)
 
 def go_right(agents_pos, prev, o):
     curr_angle = get_angle(agents_pos, prev)
-    angle_range = (fix_angle(curr_angle +90 - 45), fix_angle(curr_angle+90 + 45))
+    angle_range = (fix_angle(curr_angle -90 - 45), fix_angle(curr_angle-90 + 45))
     return find_nearest(agents_pos, angle_range, 90, o)
 
 
@@ -35,7 +35,7 @@ def fix_angle(angle):
     if angle < 0:
         angle = 360 + angle
     elif angle >= 360:
-        angle = 360 - angle
+        angle = angle - 360
 
     return angle
 
@@ -78,23 +78,4 @@ def find_nearest(agents_pos_1, angle_range, orig_angle, o):
         return decision, image_name
 
 
-
-
-
-'''def main():
-    o = dh.dataHelper()
-    o.read_routes()
-    prev = o.reset()
-    print("image_name", o.image_name(prev))
-    print("agents_pos", prev)
-    agents_pos_1 = o.find_next(prev)[0]
-    print("image_name", o.image_name(agents_pos_1))
-    print("agents_pos", agents_pos_1)
-    print("straight", go_straight(agents_pos_1, prev, o))
-
-    #o.panaroma_split(angle, 30)
-
-
-if __name__ == "__main__":
-    main()'''
 
