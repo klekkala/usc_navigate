@@ -29,8 +29,11 @@ class dataHelper:
     def image_name(self, pos):
         return self.image_names[pos]
 
-    def panaroma_split(self, theta, image ):
-        print("image_name", image + ".jpg")
+    def panorama_split(self, theta, image ):
+        print("\n")
+        print("Showing image: ", image + ".jpg")
+        print("Current viewing angle: ", theta)
+        print("\n")
         equ = E2P.Equirectangular("data/Pittsburgh/"+image+".jpg")  # Load equirectangular image
 
         #
@@ -40,7 +43,6 @@ class dataHelper:
         # height and width is output image dimension
         #
 
-        # Why is theta fixed at 360? What does theta means?
         img = equ.GetPerspective(90, theta, 0, 720, 1080)  # Specify parameters(FOV, theta, phi, height, width)
         cv2.imshow('window', img)
         cv2.waitKey(0)

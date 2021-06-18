@@ -4,33 +4,31 @@ import math
 
 
 # The behaviour of go_back: go straight back but keep looking at the same angle. Similar to google maps.
-def go_back(agents_pos, prev, o):
+def go_back(agents_pos, prev, o, curr_angle):
     print("\n")
     print("taking a step back to previous position: ", prev)
-    o.panaroma_split(0, 30, o.image_name((prev)))
-    return prev , o.image_name(prev)
+    return find_nearest(agents_pos, prev, curr_angle, o, "backward")
 
 def go_straight(agents_pos, prev, o, curr_angle):
     print("\n")
     print("taking a step straight from my current position: ", agents_pos)
     #curr_angle = get_angle(agents_pos, prev)
-    angle_range=(fix_angle(curr_angle-45),fix_angle(curr_angle+45))
-    return find_nearest(agents_pos, angle_range, 0, o)
+    return find_nearest(agents_pos, prev, curr_angle, o, "forward")
 
 
-def go_left(agents_pos, prev, o, curr_angle):
-    print("\n")
-    print("taking a step to the left from my current position: ", agents_pos)
-    #curr_angle = get_angle(agents_pos, prev)
-    angle_range = (fix_angle(curr_angle +90 - 45), fix_angle(curr_angle+90 + 45))
-    return find_nearest(agents_pos, angle_range, 270, o)
+#def go_left(agents_pos, prev, o, curr_angle):
+#    print("\n")
+#    print("taking a step to the left from my current position: ", agents_pos)
+#    #curr_angle = get_angle(agents_pos, prev)
+#    angle_range = (fix_angle(curr_angle +90 - 45), fix_angle(curr_angle+90 + 45))
+#    return find_nearest(agents_pos, angle_range, 270, o)
 
-def go_right(agents_pos, prev, o, curr_angle):
-    print("\n")
-    print("taking a step to the right from my current position: ", agents_pos)
-    #curr_angle = get_angle(agents_pos, prev)
-    angle_range = (fix_angle(curr_angle -90 - 45), fix_angle(curr_angle-90 + 45))
-    return find_nearest(agents_pos, angle_range, 90, o)
+#def go_right(agents_pos, prev, o, curr_angle):
+#    print("\n")
+#    print("taking a step to the right from my current position: ", agents_pos)
+#    #curr_angle = get_angle(agents_pos, prev)
+#    angle_range = (fix_angle(curr_angle -90 - 45), fix_angle(curr_angle-90 + 45))
+#    return find_nearest(agents_pos, angle_range, 90, o)
 
 
 def fix_angle(angle):
@@ -95,11 +93,21 @@ def angle_in_range(angle, angle_range):
 # Note: Process of graph creation: Dynamic_plot.py called build_graph. Build_graph go through every line
 # of the csv file then add all the nodes. What about edges?
 
-def find_nearest(curr_pos, angle_range, orig_angle, o):
+def find_nearest(curr_pos, prev_pos,curr_angle, o, direction):
     print("\n")
-    center_angle = fix_angle(angle_range[0] + 45)        #this is an absolute angle
-    print("Current angle: ", center_angle)
-    min_angle = 1000 # What is this?
+
+    # This is the view angle.
+    center_angle = fix_angle(curr_angle)
+
+    # The search angle is based on positions. Independent of viewing angle.
+    search_angle = get_angle(curr_pos, prev_pos)
+
+    if direction == "forward":
+        search_angle_range = (fix_angle(search_angle-90),fix_angle(search_angle+90))
+    elif direction == "backward":
+        search_angle_range = (fix_angle(search_angle+90),fix_angle(search_angle-90))
+
+    print("Current center angle: ", center_angle)
     next_pos_list = o.find_adjacent(curr_pos) # This is a list of adjacent nodes to node agents_pos_1
     decision = curr_pos
     image_name = o.image_name(curr_pos)
@@ -107,7 +115,7 @@ def find_nearest(curr_pos, angle_range, orig_angle, o):
     print("Possible next nodes: ", len(next_pos_list))
     print("List of adjacent nodes: ", next_pos_list)
     print("Distances from current node to the adjacent nodes: ", o.find_distances(curr_pos, next_pos_list))
-    print("Angle range: ", angle_range)
+    print("Search angle range: ", search_angle_range)
     filtered_pos_list = []
     # Filtering the adjacent nodes by angle cone.
     for pos in next_pos_list:
@@ -115,29 +123,18 @@ def find_nearest(curr_pos, angle_range, orig_angle, o):
         angle = get_angle(pos, curr_pos)
         print("Angle from ", curr_pos,"to ", pos, "is ", angle)
 
-        if angle_in_range(angle, angle_range):
+        if angle_in_range(angle, search_angle_range):
             filtered_pos_list.append(pos)
 
     print("Filtered adjacent nodes list: ", filtered_pos_list)
 
-    if len(filtered_pos_list) > 0:
-
-        filtered_distances_list = o.find_distances(curr_pos, filtered_pos_list)
-        print("Distances from current node to the filtered adjacent nodes: ", filtered_distances_list)
-        print("Index of min value: ", (min(filtered_distances_list)))
-        decision = filtered_pos_list[filtered_distances_list.index(min(filtered_distances_list))]
-        print("The nearest node within the angle cone is: " , decision)
-        print("Found a node within the angle cone. New node position: ", decision)
-        image_name = o.image_name(decision)
-        print("Showing new node's image: ", image_name)
-        o.panaroma_split(0, 30, image_name)
-        return decision, image_name, center_angle
-
-    else:
-
-        print("Did not find a node within the angle cone. Expanding the cone to find a nearest node.") 
-        o.panaroma_split(orig_angle, 30, image_name)
-        return decision, image_name, center_angle
-
-
-
+    filtered_distances_list = o.find_distances(curr_pos, filtered_pos_list)
+    print("Distances from current node to the filtered adjacent nodes: ", filtered_distances_list)
+    print("Index of min value: ", (min(filtered_distances_list)))
+    decision = filtered_pos_list[filtered_distances_list.index(min(filtered_distances_list))]
+    print("The nearest node within the angle cone is: " , decision)
+    print("Found a node within the angle cone. New node position: ", decision)
+    image_name = o.image_name(decision)
+    print("Showing new node's image: ", image_name)
+    o.panorama_split(center_angle, image_name)
+    return decision, image_name, center_angle

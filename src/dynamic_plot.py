@@ -29,8 +29,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.agents_pos_prev = prev
         self.agents_pos_curr = curr
         self.o = o
+        self.curr_image = self.o.image_name(self.agents_pos_curr)
         self.curr_angle = bo.get_angle(curr, prev) # Current view of the agent.
-        self.turning_range = 90 # This parameter denotes how many degrees the agent turn everytime and turn left or turn right key is pressed.
+        self.turning_range = 45 # This parameter denotes how many degrees the agent turn everytime and turn left or turn right key is pressed.
         super(MainWindow, self).__init__()
 
         self.canvas = MplCanvas(self, width=5, height=4, dpi=100)
@@ -64,7 +65,9 @@ class MainWindow(QtWidgets.QMainWindow):
             # If the agent did not move, then the agent only turns.
         #    self.curr_angle = bo.fix_angle(self.curr_angle - 90)
 
-        self.curr_angle = bo.fix_angle(self.curr_angle - self.turning_range)
+        self.curr_angle = bo.fix_angle(self.curr_angle + self.turning_range)
+
+        self.o.panorama_split(self.curr_angle, self.curr_image)
 
         self.update_plot(self.agents_pos_curr[0], self.agents_pos_curr[1])
 
@@ -79,24 +82,28 @@ class MainWindow(QtWidgets.QMainWindow):
             # If the agent did not move, then the agent only turns.
         #    self.curr_angle = bo.fix_angle(self.curr_angle + 90)
 
-        self.curr_angle = bo.fix_angle(self.curr_angle + self.turning_range)
+        self.curr_angle = bo.fix_angle(self.curr_angle - self.turning_range)
+
+        self.o.panorama_split(self.curr_angle, self.curr_image)
 
         self.update_plot(self.agents_pos_curr[0], self.agents_pos_curr[1])
 
     def up_key(self):
         #print("the arguments are", self.agents_pos_curr, self.agents_pos_prev,)
-        agents_pos_next, image_name, self.curr_angle = bo.go_straight(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
+        agents_pos_next, self.curr_image, self.curr_angle = bo.go_straight(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
 
         self.agents_pos_prev = self.agents_pos_curr
-        self.agents_pos_curr  = agents_pos_next            
+        self.agents_pos_curr = agents_pos_next            
         
         self.update_plot(self.agents_pos_curr[0], self.agents_pos_curr[1])
 
     def down_key(self):
         #print("the arguments are", self.agents_pos_curr, self.agents_pos_prev,)
-        agents_pos_next, image_name = bo.go_back(self.agents_pos_curr, self.agents_pos_prev, self.o)
+        agents_pos_next, self.curr_image, self.curr_angle = bo.go_back(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
+
         self.agents_pos_prev = self.agents_pos_curr
         self.agents_pos_curr  = agents_pos_next
+        
         self.update_plot(self.agents_pos_curr[0], self.agents_pos_curr[1])
     
     def draw_angle_cone(self, curr_pos, angle, color = 'm'):
