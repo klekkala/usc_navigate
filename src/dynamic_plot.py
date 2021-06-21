@@ -3,7 +3,7 @@ import random
 import matplotlib
 matplotlib.use('Qt5Agg')
 from PyQt5.Qt import Qt
-import beogym as bo
+import beogym
 import data_helper as dh
 import numpy as np
 import math
@@ -26,11 +26,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, prev, curr, o):
 
+        self.bo = beogym.BeoGym()
         self.agents_pos_prev = prev
         self.agents_pos_curr = curr
         self.o = o
         self.curr_image = self.o.image_name(self.agents_pos_curr)
-        self.curr_angle = bo.get_angle(curr, prev) # Current view of the agent.
+        self.curr_angle = self.bo.get_angle(curr, prev) # Current view of the agent.
         self.turning_range = 45 # This parameter denotes how many degrees the agent turn everytime and turn left or turn right key is pressed.
         super(MainWindow, self).__init__()
 
@@ -55,42 +56,20 @@ class MainWindow(QtWidgets.QMainWindow):
             self.down_key()
 
     def left_key(self):
-        #print("the arguments are", self.agents_pos_curr, self.agents_pos_prev,)
-        #agents_pos_next, image_name, self.curr_angle = bo.go_left(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
-        #if moved == 1:
-        #    self.agents_pos_prev = self.agents_pos_curr
-        #    self.agents_pos_curr  = agents_pos_next
-        #    self.curr_angle = self.prev_angle
-        #else:
-            # If the agent did not move, then the agent only turns.
-        #    self.curr_angle = bo.fix_angle(self.curr_angle - 90)
 
-        self.curr_angle = bo.fix_angle(self.curr_angle + self.turning_range)
-
-        self.o.panorama_split(self.curr_angle, self.curr_image)
+        agents_pos_next, image_name, self.curr_angle = self.bo.go_left(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
 
         self.update_plot(self.agents_pos_curr[0], self.agents_pos_curr[1])
 
     def right_key(self):
-        #print("the arguments are", self.agents_pos_curr, self.agents_pos_prev,)
-        #agents_pos_next, image_name, self.curr_angle = bo.go_right(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
-        #if moved == 1:
-        #    self.agents_pos_prev = self.agents_pos_curr
-        #    self.agents_pos_curr  = agents_pos_next
-        #    self.curr_angle = self.prev_angle
-        #else:
-            # If the agent did not move, then the agent only turns.
-        #    self.curr_angle = bo.fix_angle(self.curr_angle + 90)
 
-        self.curr_angle = bo.fix_angle(self.curr_angle - self.turning_range)
-
-        self.o.panorama_split(self.curr_angle, self.curr_image)
+        agents_pos_next, image_name, self.curr_angle = self.bo.go_right(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
 
         self.update_plot(self.agents_pos_curr[0], self.agents_pos_curr[1])
 
     def up_key(self):
         #print("the arguments are", self.agents_pos_curr, self.agents_pos_prev,)
-        agents_pos_next, self.curr_image, self.curr_angle = bo.go_straight(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
+        agents_pos_next, self.curr_image, self.curr_angle = self.bo.go_straight(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
 
         self.agents_pos_prev = self.agents_pos_curr
         self.agents_pos_curr = agents_pos_next            
@@ -98,8 +77,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_plot(self.agents_pos_curr[0], self.agents_pos_curr[1])
 
     def down_key(self):
-        #print("the arguments are", self.agents_pos_curr, self.agents_pos_prev,)
-        agents_pos_next, self.curr_image, self.curr_angle = bo.go_back(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
+
+        agents_pos_next, self.curr_image, self.curr_angle = self.bo.go_back(self.agents_pos_curr, self.agents_pos_prev, self.o, self.curr_angle)
 
         self.agents_pos_prev = self.agents_pos_curr
         self.agents_pos_curr  = agents_pos_next
@@ -111,7 +90,7 @@ class MainWindow(QtWidgets.QMainWindow):
         x = curr_pos[0]
         y = curr_pos[1]
 
-        angle_range = [bo.fix_angle(angle - 45), bo.fix_angle(angle + 45)]
+        angle_range = [self.bo.fix_angle(angle - 45), self.bo.fix_angle(angle + 45)]
         line_length = 50
 
         for angle in angle_range:

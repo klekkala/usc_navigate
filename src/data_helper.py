@@ -43,7 +43,7 @@ class dataHelper:
         # height and width is output image dimension
         #
 
-        img = equ.GetPerspective(90, theta, 0, 720, 1080)  # Specify parameters(FOV, theta, phi, height, width)
+        img = equ.GetPerspective(90, -theta, 0, 720, 1080)  # Specify parameters(FOV, theta, phi, height, width)
         cv2.imshow('window', img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()

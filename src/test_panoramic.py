@@ -4,7 +4,7 @@ import data_helper as dh
 o = dh.dataHelper()
 image = "3xBZaaUK877tjKQ7ELbFsQ"
 
-thetas = [0, 90 ,180, 270, 360 ]
+thetas = [0, -45 ,-90]
 
 for theta in thetas:
 
