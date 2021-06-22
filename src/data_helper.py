@@ -44,9 +44,11 @@ class dataHelper:
         #
 
         img = equ.GetPerspective(90, -theta, 0, 720, 1080)  # Specify parameters(FOV, theta, phi, height, width)
-        cv2.imshow('window', img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        #cv2.imshow('window', img)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
+
+        return img
 
 
     def build_graph(self, data):
@@ -107,8 +109,8 @@ class dataHelper:
     def reset(self):
         # reset the position of the agent
         print("Resets the position to a start \n")
-        # i = random.choice(range(len(self.end_points)))
-        i = 300
+        i = random.choice(range(len(self.end_points)))
+        
         return self.end_points[i]
     
     # Function to find the distances to adjacent nodes.

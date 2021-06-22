@@ -1,37 +1,114 @@
 import data_helper as dh
 import math
+import gym
+from gym import spaces
+from gym.utils import seeding
+import numpy as np
+import cv2
 
+class BeoGym(gym.Env):
 
+    def __init__(self,csv_file = "data/pittsburg_500.csv", turning_range = 45, view_resolution = (720, 1080)):
+        
+        super(BeoGym, self).__init__()
+        self.action_space = spaces.Discrete(4)
+        self.observation_space = spaces.Box(low = 0, high = 255, shape = (*view_resolution, 3), dtype= np.int32)
+        self.seed()
 
-class BeoGym():
+        # Initialize data helper:
+        self.dh = dh.dataHelper()
+        self.dh.read_routes(csv_file)
 
-    def __init__(self):
+        # Turning range of the 
+        self.turning_range = turning_range
 
-        self.turning_range = 45
-        self.action_list = ["left", "right", "straight", "back"]
+        # Maybe these will be useful?
+        self.agent_pos_curr = self.dh.reset()
+        self.agent_pos_prev = self.agent_pos_curr
+        self.curr_angle = 0
+        curr_image_name = self.dh.image_name(self.agent_pos_curr)
+        self.curr_view = self.dh.panorama_split(self.curr_angle, curr_image_name)
+
+    def reset(self):
+
+        self.agent_pos_prev = self.agent_pos_curr
+        self.agent_pos_curr = self.dh.reset()
+        image = self.dh.image_name(self.agent_pos_curr)
+        self.curr_angle = 0
+        self.curr_view = self.dh.panorama_split(self.curr_angle, image)
+
+        return self.curr_view
+
+    def step(self, action):
+
+        if action  == 0:
+            pos, curr_img_name, self.curr_angle = self.go_left(self.agent_pos_curr, self.agent_pos_prev, self.curr_angle, self.turning_range)
+        elif action == 1:
+            pos, curr_img_name, self.curr_angle = self.go_right(self.agent_pos_curr, self.agent_pos_prev, self.curr_angle, self.turning_range)
+        elif action == 2:
+            pos, curr_img_name, self.curr_angle = self.go_straight(self.agent_pos_curr, self.agent_pos_prev, self.curr_angle, self.turning_range)
+        elif action == 3:
+            pos, curr_img_name, self.curr_angle = self.go_back(self.agent_pos_curr, self.agent_pos_prev, self.curr_angle, self.turning_range)
+
+        self.agent_pos_prev = self.agent_pos_curr
+        self.agent_pos_curr = pos
+        self.curr_view = self.dh.panorama_split(self.curr_angle, curr_img_name)
+        done = False
+
+        # If reach goal then give goal reward and then done. Else, just get the reward for completing a step.
+        if self.reach_goal(self.curr_view):
+            reward = 10
+            done = True
+        else:
+            # Negative reward or positive?
+            reward = 1
+
+        info = []
+
+        return self.curr_view, reward, done, info
+
+    def render(self, mode='human'):
+
+        cv2.imshow('window', self.curr_view)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    # Copied this from CarlaEnv
+    def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
+        return [seed]
+        
+    def reach_goal(self, curr_view):
+        # Detect whether the goals has been reached?
+        # What is the goal? is it just a coordinate?
+
+        return 0
 
     # The behaviour of go_back: go straight back but keep looking at the same angle. Similar to google maps.
-    def go_back(self, agents_pos, prev, o, curr_angle):
+    def go_back(self, agents_pos, prev, curr_angle):
+
         print("\n")
         print("taking a step back to previous position: ", prev)
-        return self.find_nearest(agents_pos, prev, curr_angle, o, "backward")
+        return self.find_nearest(agents_pos, prev, curr_angle, "backward")
 
-    def go_straight(self, agents_pos, prev, o, curr_angle):
+    def go_straight(self, agents_pos, prev, curr_angle):
+
         print("\n")
         print("taking a step straight from my current position: ", agents_pos)
-        return self.find_nearest(agents_pos, prev, curr_angle, o, "forward")
+        return self.find_nearest(agents_pos, prev, curr_angle, "forward")
 
-    def go_left(self, agents_pos, prev, o, curr_angle, turning_range = 45):
+    def go_left(self, agents_pos, prev, curr_angle, turning_range = 45):
 
         new_angle = self.fix_angle(curr_angle + turning_range)
-        curr_image = o.image_name(agents_pos)
-        o.panorama_split(new_angle, curr_image)
+        curr_image = self.dh.image_name(agents_pos)
+        self.dh.panorama_split(new_angle, curr_image)
         return agents_pos, curr_image, new_angle
 
-    def go_right(self, agents_pos, prev, o, curr_angle, turning_range = 45):
+    def go_right(self, agents_pos, prev, curr_angle, turning_range = 45):
+
         new_angle = self.fix_angle(curr_angle - turning_range)
-        curr_image = o.image_name(agents_pos)
-        o.panorama_split(new_angle, curr_image)
+        curr_image = self.dh.image_name(agents_pos)
+        self.dh.panorama_split(new_angle, curr_image)
         return agents_pos, curr_image, new_angle
 
 
@@ -97,7 +174,7 @@ class BeoGym():
     # Note: Process of graph creation: Dynamic_plot.py called build_graph. Build_graph go through every line
     # of the csv file then add all the nodes. What about edges?
 
-    def find_nearest(self, curr_pos, prev_pos,curr_angle, o, direction):
+    def find_nearest(self, curr_pos, prev_pos,curr_angle, direction):
         print("\n")
 
         # This is the view angle.
@@ -125,13 +202,13 @@ class BeoGym():
                 search_angle_range = (right_bound, left_bound)
 
         print("Current center angle: ", center_angle)
-        next_pos_list = o.find_adjacent(curr_pos) # This is a list of adjacent nodes to node agents_pos_1
+        next_pos_list = self.dh.find_adjacent(curr_pos) # This is a list of adjacent nodes to node agents_pos_1
         decision = curr_pos
-        image_name = o.image_name(curr_pos)
+        image_name = self.dh.image_name(curr_pos)
         print("Current node: ", curr_pos)
         print("Possible next nodes: ", len(next_pos_list))
         print("List of adjacent nodes: ", next_pos_list)
-        print("Distances from current node to the adjacent nodes: ", o.find_distances(curr_pos, next_pos_list))
+        print("Distances from current node to the adjacent nodes: ", self.dh.find_distances(curr_pos, next_pos_list))
         print("Search angle range: ", search_angle_range)
         filtered_pos_list = []
         # Filtering the adjacent nodes by angle cone.
@@ -152,33 +229,25 @@ class BeoGym():
 
         else:
 
-            filtered_distances_list = o.find_distances(curr_pos, filtered_pos_list)
+            filtered_distances_list = self.dh.find_distances(curr_pos, filtered_pos_list)
             print("Distances from current node to the filtered adjacent nodes: ", filtered_distances_list)
             print("Index of min value: ", (min(filtered_distances_list)))
             decision = filtered_pos_list[filtered_distances_list.index(min(filtered_distances_list))]
             print("The nearest node within the angle cone is: " , decision)
             print("Found a node within the angle cone. New node position: ", decision)
-            image_name = o.image_name(decision)
+            image_name = self.dh.image_name(decision)
             print("Showing new node's image: ", image_name)
 
-        o.panorama_split(center_angle, image_name)
+        self.dh.panorama_split(center_angle, image_name)
         return decision, image_name, center_angle
 
-    def step(self, action):
+if __name__ == "__main__":
 
-        if action  == "left":
-            curr_pos, curr_img, curr_angle = self.go_left()
-        elif action == "right":
-            curr_pos, curr_img, curr_angle = self.go_right()
-        elif action == "straight":
-            curr_pos, curr_img, curr_angle = self.go_straight()
-        elif action == "back":
-            curr_pos, curr_img, curr_angle = self.go_back()
-
-        # Placeholders:
-        obs = curr_img
-        reward = 0
-        done = False
-        info = 0
-
-        return obs, reward, done, info
+    env = BeoGym()
+    action = env.action_space.sample()
+    obs, reward, done, info = env.step(action)
+    print("Obs: ", obs)
+    print("Reward: ", reward)
+    print("Done: ", done)
+    env.render()
+    env.close()
