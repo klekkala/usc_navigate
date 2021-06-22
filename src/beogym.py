@@ -19,20 +19,15 @@ class BeoGym(gym.Env):
         self.dh = dh.dataHelper()
         self.dh.read_routes(csv_file)
 
-        # Turning range of the 
+        # Turning range of the agent:
         self.turning_range = turning_range
 
-        # Maybe these will be useful?
-        self.agent_pos_curr = self.dh.reset()
-        self.agent_pos_prev = self.agent_pos_curr
-        self.curr_angle = 0
-        curr_image_name = self.dh.image_name(self.agent_pos_curr)
-        self.curr_view = self.dh.panorama_split(self.curr_angle, curr_image_name)
+        self.reset()
 
     def reset(self):
 
-        self.agent_pos_prev = self.agent_pos_curr
         self.agent_pos_curr = self.dh.reset()
+        self.agent_pos_prev = self.agent_pos_curr
         image = self.dh.image_name(self.agent_pos_curr)
         self.curr_angle = 0
         self.curr_view = self.dh.panorama_split(self.curr_angle, image)
@@ -85,13 +80,13 @@ class BeoGym(gym.Env):
         return 0
 
     # The behaviour of go_back: go straight back but keep looking at the same angle. Similar to google maps.
-    def go_back(self, agents_pos, prev, curr_angle):
+    def go_back(self, agents_pos, prev, curr_angle, turning_range = 45):
 
         print("\n")
         print("taking a step back to previous position: ", prev)
         return self.find_nearest(agents_pos, prev, curr_angle, "backward")
 
-    def go_straight(self, agents_pos, prev, curr_angle):
+    def go_straight(self, agents_pos, prev, curr_angle, turning_rate = 45):
 
         print("\n")
         print("taking a step straight from my current position: ", agents_pos)
@@ -249,5 +244,9 @@ if __name__ == "__main__":
     print("Obs: ", obs)
     print("Reward: ", reward)
     print("Done: ", done)
+    env.render()
+    print("Resetting the environment.")
+    obs = env.reset()
+    print("Resetted Obs: ", obs)
     env.render()
     env.close()
