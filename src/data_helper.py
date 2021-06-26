@@ -120,8 +120,8 @@ class dataHelper():
     def reset(self):
         # reset the position of the agent
         print("Resets the position to a start \n")
-        i = random.choice(range(len(self.end_points)))
-        
+        #i = random.choice(range(len(self.end_points)))
+        i = 250
         return self.end_points[i]
     
     # Function to find the distances to adjacent nodes.
@@ -293,28 +293,16 @@ class dataHelper():
         self.ydata = self.ydata + [y]
         self.xdata = self.xdata + [x]
 
-        #print("ydata: ", self.ydata)
-        #print("xdata: ", self.xdata)
-
         self.canvas.axes.cla()  # Clear the canvas.
         self.canvas.axes.plot(self.xdata, self.ydata, '-ob')
 
-        current_pos = (x,y)
-        #print("Current node: \n", current_pos)
-
-        adj_nodes_list = [keys for keys, values in self.G.adj[current_pos].items()]
-        #print("Adj_nodes_list: \n", adj_nodes_list)
+        adj_nodes_list = [keys for keys, values in self.G.adj[(x,y)].items()]
         num_adj_nodes = len(adj_nodes_list)
         adj_nodes_list = np.array( [[x_coor, y_coor] for x_coor, y_coor in adj_nodes_list])
-
-        #print("Adj_nodes_list: \n", adj_nodes_list)
 
         x_pos_list = np.array([x] * num_adj_nodes)
         y_pos_list = np.array([y] * num_adj_nodes)
 
-        #print("X_pos_list: \n", x_pos_list)
-
-        #print("Adj_nodes_list[:,0]: \n", adj_nodes_list[:,0])
         self.canvas.axes.plot([x_pos_list,adj_nodes_list[:,0]], [y_pos_list, adj_nodes_list[:,1]], '--or')
         self.canvas.axes.plot(x, y, color = 'green', marker = 'o')
         self.canvas.axes.text(x, y, '({}, {})'.format(x, y))
@@ -328,13 +316,52 @@ class dataHelper():
 
         self.canvas.draw()
 
-    def BEV(self, radius):
-
-        pass
-
-    def show_plot(self):
-
         self.canvas.show()
 
+    def bird_eye_view(self, curr_pos, radius):
+
+        adjacent_pos_list = self.find_adjacent(curr_pos)
+        distances_list = self.find_distances(curr_pos, adjacent_pos_list)
+        in_range_nodes_list = []
+
+        for distance, pos in zip(distances_list, adjacent_pos_list):
+
+            if distance <= radius:
+
+                in_range_nodes_list.append(pos)
+
+        bird_eye_graph = self.G.subgraph(in_range_nodes_list)
+
+        return bird_eye_graph
+
+    def draw_bird_eye_view(self, curr_pos, radius, graph):
+
+        self.bev_graph = MplCanvas(self, width=5, height=4, dpi=100)
+
+        nodes_list = [keys for keys, values in graph.nodes().items()]
+
+        num_nodes = len(nodes_list)
+
+        nodes_list = np.array([[x_coor, y_coor] for x_coor, y_coor in nodes_list])
+
+        x = curr_pos[0]
+        y = curr_pos[1]
+
+        x_pos_list = np.array([x] * num_nodes)
+        y_pos_list = np.array([y] * num_nodes)
+
+        self.bev_graph.axes.plot([x_pos_list,nodes_list[:,0]], [y_pos_list, nodes_list[:,1]], '--or')
+        self.bev_graph.axes.plot(x, y, color = 'green', marker = 'o')
+        self.bev_graph.axes.text(x, y, '({}, {})'.format(x, y))
+        self.bev_graph.axes.set_xlim([new_min, new_max])
+        self.bev_graph.axes.set_ylim([new_min, new_max])
+
+        # Draw a circle to see if the BEV is done correctly.
+        draw_circle= plt.Circle(curr_pos, radius = radius, fill = False)
+        self.bev_graph.axes.add_artist(draw_circle) 
+
+        self.bev_graph.draw()
+
+        self.bev_graph.show()
 
 

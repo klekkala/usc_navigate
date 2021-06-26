@@ -82,23 +82,29 @@ class BeoGym(gym.Env):
 if __name__ == "__main__":
 
     env = BeoGym()
-    env.seed(1)
-    check_env(env) # Checking to see if the custom env is compatible with stable-baselines3
+    env.seed(1) # Seed does not work yet. Not sure how to fix.
+    #check_env(env) # Checking to see if the custom env is compatible with stable-baselines3
 
     # Testing set actions:
     #actions = [2, 3, 3, 3, 2]
     #for action in actions:
     #    obs, reward, done, info = env.step(action)
 
-    action = env.action_space.sample()
+    #action = env.action_space.sample()
+    action = 2
     obs, reward, done, info = env.step(action)
     print("Obs: ", obs)
     print("Reward: ", reward)
     print("Done: ", done)
-    env.dh.show_plot()
     env.render()
-    print("Resetting the environment.")
-    obs = env.reset()
-    print("Resetted Obs: ", obs)
-    env.render()
+    radius = [5, 10, 15, 20 , 25]
+
+    # Testing BEV:
+    for r in radius:
+
+        graph = env.dh.bird_eye_view(env.agent.agent_pos_curr, r)
+        env.dh.draw_bird_eye_view(env.agent.agent_pos_curr, r, graph)
+        env.render()
+
     env.close()
+    
