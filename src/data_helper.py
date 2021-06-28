@@ -18,16 +18,21 @@ long_max = -79.98858816
 
 class dataHelper():
 
-    def __init__(self):
+    def __init__(self, csv_file):
 
         self.G = nx.Graph()
         self.end_points = []
 
         # Create canvas for plot rendering:
         self.canvas = MplCanvas(self, width=5, height=4, dpi=100)
+        self.bev_graph = MplCanvas(self, width=5, height=4, dpi=100)
         self.xdata = []
         self.ydata = []
 
+        # Set of visited locations.
+        self.visited_locations = set()
+
+        self.read_routes(csv_file)
 
     def new_lat_scale(self, x):
         normalized_new_val = ((x - lat_min) / (lat_max - lat_min) * (new_max - new_min)) + new_min
@@ -55,9 +60,6 @@ class dataHelper():
         #
 
         img = equ.GetPerspective(90, -theta, 0, *resolution)  # Specify parameters(FOV, theta, phi, height, width)
-        #cv2.imshow('window', img)
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
 
         return img
 
@@ -123,6 +125,14 @@ class dataHelper():
         #i = random.choice(range(len(self.end_points)))
         i = 250
         return self.end_points[i]
+
+    def sample_location(self):
+
+        location_list = [keys for keys, values in self.G.nodes.items()]
+        location = random.choice(location_list)
+
+        return location
+
     
     # Function to find the distances to adjacent nodes.
     # This is used to check to see if the node found is actually the nearest node.
@@ -278,7 +288,7 @@ class dataHelper():
             end_y = y + line_length * math.sin(math.radians(angle))
             end_x = x + line_length * math.cos(math.radians(angle))
 
-            self.canvas.axes.plot([x, end_x], [y, end_y], ':' + color )
+            self.canvas.axes.plot([x, end_x], [y, end_y], ':' + color)
 
         self.canvas.draw()
 
@@ -330,13 +340,18 @@ class dataHelper():
 
                 in_range_nodes_list.append(pos)
 
+        if len(in_range_nodes_list) == 0:
+
+            print("No nodes found in range for bird eye's view.")
+            return None
+
         bird_eye_graph = self.G.subgraph(in_range_nodes_list)
 
         return bird_eye_graph
 
     def draw_bird_eye_view(self, curr_pos, radius, graph):
 
-        self.bev_graph = MplCanvas(self, width=5, height=4, dpi=100)
+        #self.bev_graph.axes.cla()
 
         nodes_list = [keys for keys, values in graph.nodes().items()]
 
@@ -364,4 +379,9 @@ class dataHelper():
 
         self.bev_graph.show()
 
+    def distance_to_goal(self, curr_pos, goal):
+
+        return np.linalg.norm(np.array(curr_pos) - np.array(goal))
+
+        
 
