@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
     env = BeoGym(agent, dh, goal, seed = seed)
 
-    #check_env(env) # Checking to see if the custom env is compatible with stable-baselines3
+    check_env(env) # Checking to see if the custom env is compatible with stable-baselines3
 
     # Testing set actions:
     #actions = [2, 3, 3, 3, 2]
@@ -165,10 +165,10 @@ if __name__ == "__main__":
 
     #action = env.action_space.sample()
     action = 2
-    #obs, reward, done, info = env.step(action)
-    #print("\n")
-    #print("Reward: ", reward)
-    #print("Done: ", done)
+    obs, reward, done, info = env.step(action)
+    print("\n")
+    print("Reward: ", reward)
+    print("Done: ", done)
     env.render()
 
     #radius = [5, 10, 15, 20 , 25]
@@ -183,12 +183,12 @@ if __name__ == "__main__":
     #    env.render()
 
     # How to test reward?
-    distances = [25, 15, 10, 5, 3, 1]
-    for d in distances:
-        print("Distance: ", d)
-        r, d = env.courier_reward_fn(d)
-        print("Reward: ", r)
-        print("Done: ", d)
+    #distances = [25, 15, 10, 5, 3, 1]
+    #for d in distances:
+    #    print("Distance: ", d)
+    #    r, d = env.courier_reward_fn(d)
+    #    print("Reward: ", r)
+    #    print("Done: ", d)
 
     env.close()
     

@@ -36,7 +36,7 @@ class Agent():
 
     def go_left(self):
 
-        new_angle = self.dh.fix_angle(curr_angle + turning_range)
+        new_angle = self.dh.fix_angle(self.curr_angle + self.turning_range)
         curr_image = self.dh.image_name(self.agent_pos_curr)
         self.curr_angle = new_angle
         self.curr_view = self.dh.panorama_split(new_angle, curr_image)
@@ -44,7 +44,7 @@ class Agent():
 
     def go_right(self):
 
-        new_angle = self.dh.fix_angle(curr_angle - turning_range)
+        new_angle = self.dh.fix_angle(self.curr_angle - self.turning_range)
         curr_image = self.dh.image_name(self.agent_pos_curr)
         self.curr_angle = new_angle
         self.curr_view = self.dh.panorama_split(new_angle, curr_image)
