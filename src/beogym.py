@@ -9,6 +9,11 @@ import cv2
 from MplCanvas import MplCanvas
 
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.vec_env import DummyVecEnv
+from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.evaluation import evaluate_policy
+
+from stable_baselines3 import PPO, A2C
 
 class BeoGym(gym.Env):
 
@@ -49,6 +54,8 @@ class BeoGym(gym.Env):
 
             print("Goal is None. Sampled a location as goal: ", self.courier_goal)
 
+        # Logging: to be implemented.
+
     def reset(self):
 
         return self.agent.reset()
@@ -56,15 +63,20 @@ class BeoGym(gym.Env):
     def step(self, action):
 
         done = False
+        info = {}
 
         self.agent.take_action(action)
 
         # Keep track of the number of steps in an episode:
         self.curr_step += 1
-        if (self.curr_step == self. max_steps):
+
+        if (self.curr_step >= self. max_steps):
             
             done = True
+            info['time_limit_reached'] = True
+
         print("comparison: ", self.game == 'courier')
+
         # Three different type of games: https://arxiv.org/pdf/1903.01292.pdf
         if self.game == 'courier':
             reward, done = self.courier_reward_fn()
@@ -73,7 +85,6 @@ class BeoGym(gym.Env):
         elif self.game == 'instruction':
             reward, done = self.instruction_reward_fn()
 
-        info = {}
 
         return self.agent.curr_view, reward, done, info
 
@@ -144,7 +155,8 @@ class BeoGym(gym.Env):
 
 if __name__ == "__main__":
 
-    csv_file = "data/pittsburg_500.csv"
+    #csv_file = "data/pittsburg_500.csv"
+    csv_file = "data/pittsburgh_valid_v1_100s_5wp_2500m_routes.csv"
     dh = dataHelper(csv_file)
     turning_range = 45
     view_res = (720, 1080)
@@ -155,32 +167,49 @@ if __name__ == "__main__":
     goal = None # Sample from dataset.
 
     env = BeoGym(agent, dh, goal, seed = seed)
+    #check_env(env) # Checking to see if the custom env is compatible with stable-baselines3
 
-    check_env(env) # Checking to see if the custom env is compatible with stable-baselines3
+    # Training:
+    #n_envs = 4 # Number of environments
+    #train_env = make_vec_env(env, n_envs= n_envs)
 
-    # Testing set actions:
-    #actions = [2, 3, 3, 3, 2]
-    #for action in actions:
-    #    obs, reward, done, info = env.step(action)
+    # Environment for evaluation:
+    #eval_eps = 100
+    #eval_env = BeoGym(agent, dh, goal, seed = seed)
+
+    #n_expriments = 3 # Number of experiments.
+    #train_steps = 10000
+
+    #model = A2C('MlpPolicy', train_env, verbose = 1)
+
+    #rewards = []
+
+    #for experiment in range(n_expriments):
+    #    train_env.reset()
+    #    model.learn(total_timesteps= train_steps)
+    #    mean_reward, _ = evaluate_policy(model,eval_env, n_eval_episodes=eval_eps)
+    #    rewards.append(mean_reward)
 
     #action = env.action_space.sample()
-    action = 2
-    obs, reward, done, info = env.step(action)
-    print("\n")
-    print("Reward: ", reward)
-    print("Done: ", done)
-    env.render()
+    #action = 2
+    #obs, reward, done, info = env.step(action)
+    #print("\n")
+    #print("Reward: ", reward)
+    #print("Done: ", done)
+    #env.render()
 
-    #radius = [5, 10, 15, 20 , 25]
+    radius = [5, 10, 15, 20 , 25]
 
     # Testing BEV:
-    #for r in radius:
+    for r in radius:
 
-    #    graph = env.dh.bird_eye_view(env.agent.agent_pos_curr, r)
-    #    if graph is None:
-    #        break
-    #    env.dh.draw_bird_eye_view(env.agent.agent_pos_curr, r, graph)
-    #    env.render()
+        graph = env.dh.bird_eye_view(env.agent.agent_pos_curr, r)
+
+        if graph is None:
+            break
+
+        env.dh.draw_bird_eye_view(env.agent.agent_pos_curr, r, graph)
+        env.render()
 
     # How to test reward?
     #distances = [25, 15, 10, 5, 3, 1]

@@ -71,6 +71,8 @@ class dataHelper():
         prev_name = "abc"
         x = []
         y = []
+        print("\n")
+        print("Building graph. \n")
         for index, row in data.iterrows():
             route_no = row['route_no']
             lat = row['latitude']
@@ -81,10 +83,10 @@ class dataHelper():
             current_node = (scaled_lat,scaled_long)
             if (image_name not in self.G):
                 self.G.add_node((scaled_lat,scaled_long),image_name = image_name, latitude = lat, longitude=long, yaw =row['yaw'], )  # saves a node as image name
-                print((scaled_lat,scaled_long), image_name)
+                #print((scaled_lat,scaled_long), image_name)
                 if route_no == prev_route and prev_pos != (-1,-1): # Why is prev_pos only compares to one integer while it is a tuple?
                     # So the edges only connect nodes of the same route?
-                    print("adding edge")
+                    #print("adding edge")
                     x.append(scaled_lat) # What are these x, y lists for? Look at the elif below.
                     y.append(scaled_long)
                     self.G.add_edge(prev_pos, current_node)   # need to add something like a direction on this edge like right left straight...
@@ -95,7 +97,6 @@ class dataHelper():
                         self.end_points.append(prev_pos)
                     x=[]
                     y=[]
-
 
             prev_pos = current_node
             prev_route = route_no
@@ -123,7 +124,7 @@ class dataHelper():
         # reset the position of the agent
         print("Resets the position to a start \n")
         #i = random.choice(range(len(self.end_points)))
-        i = 250
+        i = 1000
         return self.end_points[i]
 
     def sample_location(self):

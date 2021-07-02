@@ -9,7 +9,7 @@ class Agent():
         self.reset()
 
     def reset(self):
-
+        
         self.agent_pos_curr = self.dh.reset()
         self.agent_pos_prev = self.agent_pos_curr
         self.curr_image_name = self.dh.image_name(self.agent_pos_curr)
