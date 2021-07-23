@@ -88,6 +88,12 @@ Takes one arbitrary step in a direction to get initial orientation.
 Waits for key presses to take next step and displays images from positions reached.
 
 
+Graphmaker.py:
+--------------------------------------------
+
+This file sample the coordinates of the USC campus and then query the Google Directions API for all the walking routes between those coordinates. All the points along the routes is then drawn to display a map of campus.
+
+
 **USC Campus related files:**
 --------------------------------------------
 
