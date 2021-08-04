@@ -88,4 +88,32 @@ Takes one arbitrary step in a direction to get initial orientation.
 Waits for key presses to take next step and displays images from positions reached.
 
 
+Graphmaker.py:
+--------------------------------------------
+
+This file sample the coordinates of the USC campus and then query the Google Directions API for all the walking routes between those coordinates. All the points along the routes is then drawn to display a map of campus.
+
+
+**USC Campus related files:**
+--------------------------------------------
+
+usccampusimginfo.csv - Information connecting the real coordinates of the images to the image name on the Google API.
+
+uscroutesinfo.csv - Each coordinate in usccampusimginfo.csv was used twice, once as source and another as destination in order to get these routes. The latitude and longitude columns are the points along the route. Note that most coordinates does not have images associated with it as we set the travel mode to walking and the images were taken by a van.
+
+usccampusgraph.graphml - The graph that contains all the routes in uscroutesinfo.csv.
+
+uscroutesinfo_expanded.csv - Similar to the above but the source and the destination for the routes are sampled from the range between min_lat, max_lat, min_long and max_long (not from the usccampusimginfo.csv). Please see the sample_coordinate function in graphmaker.py. Note that most coordinates does not have images associated with it as we set the travel mode to walking and the images were taken by a van.
+
+usccampusgraph_expanded.graphml - The graph that contains all the routes in uscroutesinfo_expanded.csv. 
+
+usccampusimg.7z - 7z file that contains the folder for the images. For more information regarding how the file names are formatted, look at the downloadImage function.
+
+
+
+
+
+
+
+
 
