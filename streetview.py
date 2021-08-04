@@ -188,14 +188,14 @@ url = "https://www.google.com/maps/dir/58.5407688,7.2042099/68.4610472,15.873716
 #dst = result.group(2)
 
 
-dirname = "usccampus"
-itemode = "walking"  # Walking around the campus.
+dirname = "usccampusv4"
+itemode = "driving"  # Walking around the campus.
 SAMPLING_WAYPOINTS = 1
 FETCH_ANGLE_NUM = 4
 
 # Pick two random points as source and destination around the USC campus:
-src = '34.01841,-118.29144'
-dst = '34.02122,-118.28075'
+src = '34.01837,-118.28900'
+dst = '34.02014,-118.28487'
 
 print src
 print dst
@@ -207,8 +207,8 @@ print dst
 # 3. Save this file as a json somewhere.
 
 # Encoded polyline:
-waypoints = "m|snElx~pUcT@KeSfUsq@xT~LDdFkDiCuDzK~IbYExM_BsOwEtNmDu@kFfA}@eImClIpO_VH{EtABnEzKae@oH:"
-test_route = "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&mode=%s&waypoints=optimize:true|enc:%s&key=%s" % (
+waypoints = "aisnElg~pU}EfOeDgAiAsG~CoJ`BwEqAC|GzKsR`Pn@oBiDaA~@_DzBtAoCwGsJgF|E}N`EsLzD{KoTrg@}@c@rg@{UoCcC[bF"
+test_route = "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&mode=%s&waypoints=enc:%s:&key=%s" % (
     src, dst, itemode, waypoints, apikey)
 
 
@@ -300,8 +300,8 @@ class FetchImageThread(threading.Thread):
         @param value: value to 'calculate' to
         """
         threading.Thread.__init__(self)
-        self.w = w = 300
-        self.h = h = 300
+        self.w = w = 640
+        self.h = h = 480
         #self.lon = lon = 34.0214267
         #self.lat = lat = -118.2894274
         self.lat = lat = 34.0201559
@@ -315,6 +315,10 @@ class FetchImageThread(threading.Thread):
 
         #################
         self.max_index = 360 / self.fov  # <<<<<<<<<<< setup fetch angle
+
+        # Id of the current panorama:
+        self.true_id = 0
+        self.prev_true_id = 0
 
     def updateURL(self):
         self.previewURL = "https://maps.googleapis.com/maps/api/streetview?size=%dx%d&location=%10.6f,%10.6f&heading=%6.2f8&pitch=%6.2f&fov=%6.2f&key=%s" % (
@@ -529,7 +533,7 @@ class FetchImageThread(threading.Thread):
 
         
         # File to write down the images' information:
-        f = open("usccampusimginfo.csv", "w+")
+        f = open("usccampusimginfov4.csv", "w+")
         f.write("pano_id,id,h_offset,lat,lon\n")
 
         num_seg = len(steps)
@@ -570,6 +574,7 @@ class FetchImageThread(threading.Thread):
                         if self.options.preview:
                             self.max_index = 2
 
+
                         for i in range(0, self.max_index):
                             #for j in range(1, self.max_index):
                             if not keep_running:
@@ -590,19 +595,25 @@ class FetchImageThread(threading.Thread):
                             self.updateURL()
 
                             # Get the metadata for the image. This will give the true lat and lon of the image.
-                            true_lat, true_lon, true_id = self.getMetadata()
+                            if (i == 0):
+                                true_lat, true_lon, self.true_id = self.getMetadata()
+                                print("Queried metadata. Current True_id: %s || Prev_id: %s \n" % (self.true_id, self.prev_true_id))
+                                # Avoid querying repeating waypoints:
+                                if self.true_id == self.prev_true_id:
+                                    print("This id is the same as the previous id. Skip the query.\n")
+                                    break
 
                             y = hzline = self.pitch2hz(self.pitch)
                             x = vtline = self.heading2vt(h_offset)
-                            print "id %d seg %d/%d index %d/%d lon %f lat %f pitch %d head %d vp %d %d" % (
-                                self.id, seg, num_seg, index, num_pts - 1, lon, lat, p_offset, h_offset, x, y)
+                            #print "id %d seg %d/%d index %d/%d lon %f lat %f pitch %d head %d vp %d %d" % (
+                            #    self.id, seg, num_seg, index, num_pts - 1, true_lon, true_lat, p_offset, h_offset, x, y)
                             filename = "img_%d_vp_%d_%d_lon_%f_lat_%f_pitch_%d_headoffset_%d_roadhead_%f.jpg" % (
-                                self.id, x, y, lon, lat, p_offset, h_offset, roadheading)
+                                self.id, x, y, true_lon, true_lat, p_offset, h_offset, roadheading)
                             path = output_path+"/"+img_path+"/"+filename
                             #print path
 
                             # Write down the information into the file.
-                            f.write("%s,%s,%s,%s,%s\n" % (true_id, self.id, h_offset, true_lat, true_lon))
+                            f.write("%s,%s,%s,%s,%s\n" % (self.true_id, self.id, h_offset, true_lat, true_lon))
 
                             if self.options.preview:
                                 if index % (SAMPLING_WAYPOINTS*10) == 0:
@@ -634,7 +645,9 @@ class FetchImageThread(threading.Thread):
 
                     # only download every 10 waypoints to keep variety
                     if index % SAMPLING_WAYPOINTS == 0:
+
                         downloadImage()
+                        self.prev_true_id = self.true_id
                         
                 except StopIteration as sie:
                     print sie
