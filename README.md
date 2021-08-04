@@ -93,11 +93,15 @@ Graphmaker.py:
 
 This file sample the coordinates of the USC campus and then query the Google Directions API for all the walking routes between those coordinates. All the points along the routes is then drawn to display a map of campus.
 
+Mapmaker.py
+--------------------------------------------
+
+This file allows the user to manually get the matplotlib coordinates of an image. There are also functions that attempts to convert the matplotlib coordinates to Google Maps coordinates.
 
 **USC Campus related files:**
 --------------------------------------------
 
-usccampusimginfo.csv - Information connecting the real coordinates of the images to the image name on the Google API.
+usccampusimginfo.csv - Information connecting the real coordinates of the images to the image name on the Google API. This file contains a lot of images on the big roads around campus and the buildings inside campus.
 
 uscroutesinfo.csv - Each coordinate in usccampusimginfo.csv was used twice, once as source and another as destination in order to get these routes. The latitude and longitude columns are the points along the route. Note that most coordinates does not have images associated with it as we set the travel mode to walking and the images were taken by a van.
 
@@ -108,6 +112,16 @@ uscroutesinfo_expanded.csv - Similar to the above but the source and the destina
 usccampusgraph_expanded.graphml - The graph that contains all the routes in uscroutesinfo_expanded.csv. 
 
 usccampusimg.7z - 7z file that contains the folder for the images. For more information regarding how the file names are formatted, look at the downloadImage function.
+
+usccampusimginfov4.csv - Information connecting the real coordinates of the images to the image name on the Google API. The waypoints inside the campus is redone in this file. So this file contains a lot more images of the roads inside of USC campus.
+
+usccampusgraph_final.csv - The cleanest file that contains all the points on the USC campus map.
+
+usccampusgraph_manual.csv - The file that contains all the points the user manually inputted in using matplotlib. All the points are in matplotlib coordinates.
+
+usccampusgraph_manual_converted.csv - New Google Maps coordinates of the points in usccampusgraph_manual.csv.
+
+
 
 
 
