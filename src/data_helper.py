@@ -1,4 +1,5 @@
 import pandas as pd
+from config import CONFIG_DICT
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
@@ -16,9 +17,9 @@ long_min = -80.03468568
 long_max = -79.98858816
 
 
-class dataHelper():
+class DataHelper():
 
-    def __init__(self, csv_file):
+    def __init__(self):
 
         self.G = nx.Graph()
         self.end_points = []
@@ -32,7 +33,7 @@ class dataHelper():
         # Set of visited locations.
         self.visited_locations = set()
 
-        self.read_routes(csv_file)
+        self.read_routes(CONFIG_DICT["csv_file"])
 
     def new_lat_scale(self, x):
         normalized_new_val = ((x - lat_min) / (lat_max - lat_min) * (new_max - new_min)) + new_min
