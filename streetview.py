@@ -188,10 +188,10 @@ url = "https://www.google.com/maps/dir/58.5407688,7.2042099/68.4610472,15.873716
 #dst = result.group(2)
 
 
-dirname = "usccampusv4"
+dirname = "usccampus_12angles"
 itemode = "driving"  # Walking around the campus.
 SAMPLING_WAYPOINTS = 1
-FETCH_ANGLE_NUM = 4
+FETCH_ANGLE_NUM = 12
 
 # Pick two random points as source and destination around the USC campus:
 src = '34.01837,-118.28900'
@@ -310,11 +310,11 @@ class FetchImageThread(threading.Thread):
 
         self.heading = heading = 39.85
         self.pitch = pitch = 0
-        self.fov = 360 / FETCH_ANGLE_NUM
+        self.fov = 90
         self.previewURL, self.metaURL = self.updateURL()
 
         #################
-        self.max_index = 360 / self.fov  # <<<<<<<<<<< setup fetch angle
+        self.max_index = FETCH_ANGLE_NUM # <<<<<<<<<<< setup fetch angle
 
         # Id of the current panorama:
         self.true_id = 0
@@ -533,7 +533,7 @@ class FetchImageThread(threading.Thread):
 
         
         # File to write down the images' information:
-        f = open("usccampusimginfov4.csv", "w+")
+        f = open("usccampusimginfo_12angles.csv", "w+")
         f.write("pano_id,id,h_offset,lat,lon\n")
 
         num_seg = len(steps)
@@ -587,7 +587,7 @@ class FetchImageThread(threading.Thread):
 
                             else:
 
-                                h_offset = i * self.fov
+                                h_offset = i * (360 / FETCH_ANGLE_NUM)
                                 p_offset = 0
 
                             self.heading = roadheading + h_offset
