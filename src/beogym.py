@@ -1,5 +1,5 @@
 from data_helper import DataHelper
-from agent import BeoGymAgent
+#from agent import BeoGymAgent
 import math
 import gym
 from gym import spaces
@@ -10,12 +10,12 @@ from MplCanvas import MplCanvas
 
 from config import *
 
-from stable_baselines3.common.env_checker import check_env
-from stable_baselines3.common.vec_env import DummyVecEnv
-from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.evaluation import evaluate_policy
+#from stable_baselines3.common.env_checker import check_env
+#from stable_baselines3.common.vec_env import DummyVecEnv
+#from stable_baselines3.common.env_util import make_vec_env
+#from stable_baselines3.common.evaluation import evaluate_policy
 
-from stable_baselines3 import PPO, A2C
+#from stable_baselines3 import PPO, A2C
 
 import tensorflow as tf
 
@@ -28,6 +28,7 @@ import tensorflow as tf
 # 2. step(action): take an action and return a tuple of (reward, done, observation)
 # 3. _tensor_psecs(method_name, unused_kwargs, constructor_kwargs): return a nest of TensorSpec
 # with the initial and step methods' output's specification.
+# 4. close(): close is used in the TFProxy. Need to look at DeepmindLab to see what does close() do.
 
 
 # ALSO, check to see if the seed setting works in BeoGym. If this does not work then cannot test.
@@ -268,7 +269,7 @@ class BeoGymEnv(gym.Env):
 
 if __name__ == "__main__":
 
-    agent = BeoGymAgent()
+    #agent = BeoGymAgent()
     env = BeoGymEnv()
     #check_env(env) # Checking to see if the custom env is compatible with stable-baselines3
 
