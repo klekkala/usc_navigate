@@ -46,7 +46,7 @@ from optparse import OptionParser
 from IPython import embed
 import sys
 import os
-from cStringIO import StringIO  # Get image from web
+from io import BytesIO  # Get image from web
 # import wxpil #convert pil image to wx image
 from PIL import Image
 import cv2
@@ -197,8 +197,8 @@ FETCH_ANGLE_NUM = 12
 src = '34.01837,-118.28900'
 dst = '34.02014,-118.28487'
 
-print src
-print dst
+print(src)
+print(dst)
 
 # Plan to get USC campus images:
 # 1. Use the Interactive Polyline encoder Utility: https://developers.google.com/maps/documentation/utilities/polylineutility
@@ -238,7 +238,7 @@ class AioClientLog(object):
 
         logger.debug("Houston, we have a %s", "thorny problem", exc_info=1)
         """
-        print msg
+        print(msg)
 
     def info(self, msg, *args, **kwargs):
         """
@@ -249,7 +249,7 @@ class AioClientLog(object):
 
         logger.info("Houston, we have a %s", "interesting problem", exc_info=1)
         """
-        print msg
+        print(msg)
 
     def warning(self, msg, *args, **kwargs):
         """
@@ -260,7 +260,7 @@ class AioClientLog(object):
 
         logger.warning("Houston, we have a %s", "bit of a problem", exc_info=1)
         """
-        print msg
+        print(msg)
 
     def error(self, msg, *args, **kwargs):
         """
@@ -271,13 +271,13 @@ class AioClientLog(object):
 
         logger.error("Houston, we have a %s", "major problem", exc_info=1)
         """
-        print msg
+        print(msg)
 
     def exception(self, msg, *args, **kwargs):
         """
         Convenience method for logging an ERROR with exception information.
         """
-        print msg
+        print(msg)
 
     def critical(self, msg, *args, **kwargs):
         """
@@ -288,7 +288,7 @@ class AioClientLog(object):
 
         logger.critical("Houston, we have a %s", "major disaster", exc_info=1)
         """
-        print msg
+        print(msg)
 
 ########################################################################
 
@@ -335,8 +335,7 @@ class FetchImageThread(threading.Thread):
         self.updateURL()
         img = self.getImage()
         cv2.imshow("image", img)
-        print "Current Pitch %d, heading %d " % (
-            int(self.pitch), int(self.heading))
+        print("Current Pitch %d, heading %d " % (int(self.pitch), int(self.heading)))
 
     # cover pitch to horizon line
     # we know image pitch is from -44~44 cover top to bottom image
@@ -414,7 +413,7 @@ class FetchImageThread(threading.Thread):
                 return steps
 
         except Exception as e:
-            print e
+            print(e)
             pass
         return None
 
@@ -423,17 +422,17 @@ class FetchImageThread(threading.Thread):
         r = sendRequest(self.previewURL)
         try:
             if r.status_code == 200:
-                img = Image.open(StringIO(r.content))
+                img = Image.open(BytesIO(r.content))
                 cvImage = cv2.cvtColor(numpy.array(img), cv2.COLOR_RGB2BGR)
                 return cvImage
         except IOError as e:
-            print "IO Error"
-            print e
+            print("IO Error")
+            print(e)
         except AttributeError as e:
-            print "Error"
-            print e
+            print("Error")
+            print(e)
         except Exception as e:
-            print e
+            print(e)
 
         return cvImage
 
@@ -449,7 +448,7 @@ class FetchImageThread(threading.Thread):
             if dict["status"] == "OK":
                 return dict["location"]["lat"], dict["location"]["lng"], dict["pano_id"]
         except Exception as e:
-            print e
+            print(e)
 
         return None,None,None
 
@@ -460,15 +459,15 @@ class FetchImageThread(threading.Thread):
         # numpy.save("NullImageHist.numpy",hist)
         # Comparison method is 0, which is CV_COMP_CORREL
         cmpRes = cv2.compareHist(hist, null_image_hist, 0)
-        print cmpRes
+        print(cmpRes)
         if cmpRes > 0.95:
-            print "Image not available"
+            print("Image not available")
             return False
         return True
 
     def click_and_crop(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
-            print "Mouse click (%d,%d)" % (x, y)
+            print("Mouse click (%d,%d)" % (x, y))
 
     def run(self):
         """
@@ -479,7 +478,7 @@ class FetchImageThread(threading.Thread):
         img_path = "img"
         aioClientLog = AioClientLog()
         if os.path.isdir(output_path):
-            ans = raw_input("%s Dir exist, do you want to delete it? (Y/n)" %
+            ans = input("%s Dir exist, do you want to delete it? (Y/n)" %
                             output_path)
             if ans == 'Y' or ans == 'y':
                 shutil.rmtree(output_path)
@@ -520,12 +519,12 @@ class FetchImageThread(threading.Thread):
             polyline = s[0]['polyline']['points']
             pts = gistfile1.decode(polyline)
             total_pts += len(pts)
-            print s
-            print pts
-            print "This seg has %d pts" % len(pts)
+            print(s)
+            print(pts)
+            print("This seg has %d pts" % len(pts))
 
-        print "Total way points %d image %d" % (total_pts, int(
-            total_pts/SAMPLING_WAYPOINTS) * (self.max_index-1)*(self.max_index-1))
+        print("Total way points %d image %d" % (total_pts, int(
+            total_pts/SAMPLING_WAYPOINTS) * (self.max_index-1)*(self.max_index-1)))
         if self.options.dryrun:
             img = numpy.zeros((self.w, self.h, 3), numpy.uint8)
             cv2.imshow("image", img)
@@ -616,6 +615,7 @@ class FetchImageThread(threading.Thread):
                             f.write("%s,%s,%s,%s,%s\n" % (self.true_id, self.id, h_offset, true_lat, true_lon))
 
                             if self.options.preview:
+
                                 if index % (SAMPLING_WAYPOINTS*10) == 0:
                                     img = self.getImage()
                                     # if image is not available, skip entire pan and tilt grab
@@ -650,17 +650,17 @@ class FetchImageThread(threading.Thread):
                         self.prev_true_id = self.true_id
                         
                 except StopIteration as sie:
-                    print sie
+                    print(sie)
                 except IndexError as ie:
-                    print ie
+                    print(ie)
                 except Exception as e:
-                    print e
+                    print(e)
 
             seg += 1
         
         f.close() #Close the file.
-        print "======================================="
-        print "%s All pts Finished, total %d images" % (dirname, self.id)
+        print("=======================================")
+        print("%s All pts Finished, total %d images" % (dirname, self.id))
 
 
 # Network Request Function
@@ -713,7 +713,7 @@ def main():
     fit.start()
 
     signal.pause()
-    print "Exit"
+    print("Exit")
 
 
 if __name__ == "__main__":
