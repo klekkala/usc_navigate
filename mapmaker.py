@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy
 import requests
-import cv2
+#import cv2
 from PIL import Image, ImageOps, ImageChops
-from cStringIO import StringIO
+from io import BytesIO
 import os
 
 apikey = "AIzaSyA2BEmbwVbpINCm_w6PSCnysZnlJDAr7oM"
@@ -35,20 +35,20 @@ def getImage(url):
     r = sendRequest(url)
     try:
         if r.status_code == 200:
-            img = Image.open(StringIO(r.content))
+            img = Image.open(BytesIO(r.content))
             #cvImage = cv2.cvtColor(numpy.array(img), cv2.COLOR_RGB2BGR)
             return img
     except IOError as e:
-        print "IO Error"
-        print e
+        print("IO Error")
+        print(e)
     except AttributeError as e:
-        print "Error"
-        print e
+        print("Error")
+        print(e)
     except Exception as e:
-        print e
+        print(e)
 
     print("Error. Printing status code of the request:\n")
-    print r.status_code
+    print(r.status_code)
     return cvImage
 
 def getSteps(jsonfile):
@@ -77,7 +77,7 @@ def new_long_scale(x, long_min, long_max, new_long_min, new_long_max):
 def getGraph(filename):
 
     if os.path.isfile("%s.csv" % filename):
-        ans = raw_input("File %s.csv already exists. Please either change the name to create a new file or continue to write to the old file. Continute to write to the old file? (y/n)" % (
+        ans = input("File %s.csv already exists. Please either change the name to create a new file or continue to write to the old file. Continute to write to the old file? (y/n)" % (
             filename
         ))
         if ans == "n" or ans == "N":
@@ -98,7 +98,7 @@ def getGraph(filename):
     #plt.scatter(x,y)meanLat
     #plt.axis("off")
 
-    points = plt.ginput(1000, timeout = 0, show_clicks = True)
+    points = plt.ginput(4, timeout = 0, show_clicks = True)
 
 
     with open("%s.csv" % filename, "w") as f:
@@ -149,7 +149,7 @@ def zoomIn(image, scale):
     return image.resize((width, height))
 
 # This is to overlay the two images.
-def overlay(zoomScale, leftShirt, bottomShirt):
+def overlay(zoomScale, leftShift, bottomShift):
 
     # The map of USC:
     background = Image.open("uscmaps/zoom16.png")
@@ -291,17 +291,17 @@ def main():
     # the scaling fit.
 
     filename = "usccampusgraph_manual"
-    getGraph(filename)
+    #getGraph(filename)
     # IMPORTANT: Adjust these parameters to adjust the scaling,
-    longScaleParam = 1.035
-    latScaleParam = 1.225
-    #convertCoordinates(longScaleParam, latScaleParam)
+    longScaleParam = 1.02
+    latScaleParam = 1.29
+    convertCoordinates(longScaleParam, latScaleParam)
 
     #Manually adjust these parameters so that the graph can overlay perfectly on top of the map.
-    zoomScale = 1.32 # Zoom levels of the foreground, which are dots in this case.
+    zoomScale = 1.21 # Zoom levels of the foreground, which are dots in this case.
     leftShift = -75 # Shift image to the left.
-    bottomShift = -70 # Shift image down.
-    #overlay(zoomScale, leftShift, bottomShift)
+    bottomShift = -100 # Shift image down.
+    overlay(zoomScale, leftShift, bottomShift)
 
 
 if __name__ == "__main__":
