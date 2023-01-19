@@ -1,11 +1,5 @@
 import networkx as nx
 import pandas as pd
-import requests
-from random import sample
-import gistfile1
-import matplotlib.pyplot as plt
-import json
-
 
 new_min = -100
 new_max = 100
@@ -51,9 +45,10 @@ def build_graph(filepath):
 
         node1 = (lat1, lon1)
         node2 = (lat2, lon2)
-        if node1 not in G:
+
+        if not G.has_node(node1):
             G.add_node(node1, lat = lat1, long = lon1)
-        if node2 not in G:
+        if not G.has_node(node2):
             G.add_node(node2, lat = lat2, long = lon2)
         G.add_edge(node1, node2)
 
@@ -72,19 +67,56 @@ def draw_graph(G):
 
 # Return all shortest paths between start node and every other node
 def getShortestPaths(G, startNode):
-    return nx.single_source_shortest_path(G, startNode)
+    pathsTo = nx.shortest_path(G, source=startNode)
+    for target in pathsTo:
+        pathsTo[target] = pathsTo[target] + nx.shortest_path(G, source=target,
+                                                             target=startNode)[1:]
+    
+    return pathsTo
 
 
 def main():
     # Build graph
-    filepath = ""    
+    filepath = "20ft_edges.csv"    
     G = build_graph(filepath)
 
     # Find all shortest paths from the source to every other node
-    startNode = (0, 0)
+    startNode = (52.92495789398822, 23.843143218917334)
     allPaths = getShortestPaths(G, startNode)
+    '''
+    for source in allPaths:
+        count = len(allPaths[source].keys())
+        if count >= 183:
+            print(source)
+    quit()
+    '''
 
-    # 
+    # Get unions of paths
+    MAX_NODES = 370
+    newPaths = []
+    currPath = nx.Graph()
+    tsp = nx.approximation.traveling_salesman_problem
+    for path in allPaths:
+        # Current graph has enough nodes, so a new one is created
+        if len(list(currPath.nodes)) + len(allPaths[path]) >= MAX_NODES:
+            newPaths.append(tsp(currPath))
+            currPath = nx.Graph()
+
+        # Convert path to graph
+        for node in allPaths[path]:
+            if not currPath.has_node(node):
+                currPath.add_node(node)
+        for i in range(1, len(allPaths[path])):
+            if not currPath.has_edge(allPaths[path][i - 1], allPaths[path][i]):
+                currPath.add_edge(allPaths[path][i - 1], allPaths[path][i])
+    # Add leftover path
+    if len(list(currPath.nodes)) > 0:
+        newPaths.append(tsp(currPath))
+
+    '''
+    for path in newPaths:
+        print(path)
+    '''
 
 if __name__ == "__main__":
     main()
