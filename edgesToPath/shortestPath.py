@@ -1,5 +1,6 @@
 import networkx as nx
 import pandas as pd
+from PIL import Image, ImageDraw
 
 new_min = -100
 new_max = 100
@@ -47,9 +48,9 @@ def build_graph(filepath):
         node2 = (lat2, lon2)
 
         if not G.has_node(node1):
-            G.add_node(node1, lat = lat1, long = lon1)
+            G.add_node(node1, lat = point["lat1"], long=point["lon1"])
         if not G.has_node(node2):
-            G.add_node(node2, lat = lat2, long = lon2)
+            G.add_node(node2, lat = point["lat2"], long = point["lon2"])
         G.add_edge(node1, node2)
 
     return G
@@ -74,11 +75,41 @@ def getShortestPaths(G, startNode):
     
     return pathsTo
 
+def scale_to_img(lat_lon, h_w):
+    """
+    Conversion from latitude and longitude to the image pixels.
+    It is used for drawing the GPS records on the map image.
+    :param lat_lon: GPS record to draw (lat1, lon1).
+    :param h_w: Size of the map image (w, h).
+    :return: Tuple containing x and y coordinates to draw on map image.
+    :param points: Upper-left, 
+                    and lower-right GPS points of the map (lat1, lon1, lat2, lon2).
+    """
+    points = [34.027959, -118.291980, 34.016863, -118.278346]
+
+    # https://gamedev.stackexchange.com/questions/33441/how-to-convert-a-number-from-one-min-max-set-to-another-min-max-set/33445
+    old = (points[2], points[0])
+    new = (0, h_w[1])
+    y = ((lat_lon[0] - old[0]) * (new[1] - new[0]) / (old[1] - old[0])) + new[0]
+    old = (points[1], points[3])
+    new = (0, h_w[0])
+    x = ((lat_lon[1] - old[0]) * (new[1] - new[0]) / (old[1] - old[0])) + new[0]
+    # y must be reversed because the orientation of the image in the matplotlib.
+    # image - (0, 0) in upper left corner; coordinate system - (0, 0) in lower left corner
+    return int(x), h_w[1] - int(y)
+
 
 def main():
     # Build graph
     filepath = "20ft_edges.csv"    
     G = build_graph(filepath)
+    origCoords = {}
+    for key, data in G.nodes(data = True):
+        origCoords[key] = (data['lat'], data['long'])
+
+    # TEST
+    #print(new_lat_scale(34.027959), new_long_scale(-118.291980))
+    #print(new_lat_scale(34.016863), new_long_scale(-118.278346))
 
     # Find all shortest paths from the source to every other node
     startNode = (52.92495789398822, 23.843143218917334)
@@ -99,7 +130,12 @@ def main():
     for path in allPaths:
         # Current graph has enough nodes, so a new one is created
         if len(list(currPath.nodes)) + len(allPaths[path]) >= MAX_NODES:
-            newPaths.append(tsp(currPath))
+            tspPath = tsp(currPath)
+            tempPath = []
+            for n in tspPath:
+                tempPath.append(origCoords[n])
+            newPaths.append(tempPath)
+
             currPath = nx.Graph()
 
         # Convert path to graph
@@ -111,12 +147,34 @@ def main():
                 currPath.add_edge(allPaths[path][i - 1], allPaths[path][i])
     # Add leftover path
     if len(list(currPath.nodes)) > 0:
-        newPaths.append(tsp(currPath))
+        tspPath = tsp(currPath)
+        tempPath = []
+        for n in tspPath:
+            tempPath.append(origCoords[n])
+        newPaths.append(tempPath)
 
     '''
     for path in newPaths:
-        print(path)
+        print(len(path))
     '''
+
+    # Plot the paths on separate maps
+    count = 0
+    for path in newPaths:
+        image = Image.open('zoom16.png', 'r')
+
+        scaledPts = []
+        for d in newPaths[0]:
+            x1, y1 = scale_to_img(d, (image.size[0], image.size[1]))
+            scaledPts.append((x1, y1))
+
+        draw = ImageDraw.Draw(image)
+        draw.line(scaledPts, fill=(255, 0, 0), width=2)
+        fileName = "path" + str(count) + ".png"
+        count += 1
+        image.save(fileName)
+        quit()
+
 
 if __name__ == "__main__":
     main()
