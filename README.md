@@ -121,7 +121,14 @@ usccampusgraph_manual.csv - The file that contains all the points the user manua
 
 usccampusgraph_manual_converted.csv - New Google Maps coordinates of the points in usccampusgraph_manual.csv.
 
+ShortestPath.py
+--------------------------------------------
+Finds the shortest path from edges defined in the "20ft_edges.csv" file and displays the path on the "zoom16.png" image in the same directory.
 
+Run the following command in the terminal:
+```
+python shortestPath.py
+```
 
 
 
